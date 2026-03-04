@@ -39,7 +39,7 @@ void hold_gc_mark_and_sweep(GC *gc, HoldVM *vm) {
     uint64_t i = 0;
     while(i < gc->tracked_object_count) {
         if (!(*gc->tracked_objects[i]).marked) {
-            free((*gc->tracked_objects[i]).fields);
+            free(gc->tracked_objects[i]);
 
             gc->tracked_object_count--;
             if (gc->tracked_object_count > 0) {
