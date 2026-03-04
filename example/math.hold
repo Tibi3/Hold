@@ -1,0 +1,30 @@
+export struct Vec2 {
+    x: f32,
+    y: f32
+}
+
+export fn Vec::new(x: f32, y: f32): Vec2 {
+    return Vec2 {
+        x: x,
+        y: y
+    };
+}
+
+export fn Vec::add(self, other: Vec2) {
+    self.x += other.x;
+    self.y += other.y;
+}
+
+export trait VecLike {
+    length(self): f32,
+    length_squared(self): f32,
+    scale(self, value: f32),
+}
+
+export fn maxi(a: i64, b: i64): i64 {
+    if a > b {
+        return a;
+    }
+
+    return b;
+}
