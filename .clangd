@@ -1,0 +1,6 @@
+CompileFlags:
+  Add: [-c]
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None

@@ -1,0 +1,21 @@
+struct Vec2 {
+    x: f32,
+    y: f32,
+}
+
+fn Vec2::new(x: f32, y: f32) -> Vec2 {
+    return Vec2 {
+        x: x,
+        y: y
+    }
+}
+
+fn main() -> i32 {
+    let x: i32 = 0;                                                             # On the stack
+    let y: Vec2 = Vec2 { x: 0, y: 0}                                            # On the heap
+
+    let z: [i32] = { 1, 2, 3 }                                                  # On the heap also
+    let w: [Vec2] = { Vec2::new(0, 0), Vec2::new(1, 1) }                        # On the heap, stores Vec2 pointers
+
+    return x;
+}
