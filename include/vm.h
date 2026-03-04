@@ -3,12 +3,14 @@
 #include <stdint.h>
 #include <stdalign.h>
 #include "common.h"
+#include "gc.h"
 
 #define STACK_SIZE 1024
 #define REGISTER_COUNT 16
 #define CONSTANT_COUNT 1024
 
 enum HoldInstruction : uint8_t {
+    HOLD_INSTRUCTION_HALT,
     // Load
     HOLD_INSTRUCTION_LOAD_CONSTANT,
     HOLD_INSTRUCTION_LOAD_U8_FROM_STACK,
@@ -26,33 +28,44 @@ enum HoldInstruction : uint8_t {
     HOLD_INSTRUCTION_ADD_INTEGER,
     HOLD_INSTRUCTION_ADD_F32,
     HOLD_INSTRUCTION_ADD_F64,
+
+    HOLD_INSTRUCTION_EQ_INTEGER,
+    HOLD_INSTRUCTION_EQ_FLOAT,
+    HOLD_INSTRUCTION_JUMP,
+
+    HOLD_INSTRUCTION_CALL,
+    HOLD_INSTRUCTION_RETURN,
+
+    HOLD_INSTRUCTION_ALLOC_OBJECT,
+    HOLD_INSTRUCTION_OBJECT_SET_FIELD,
+    HOLD_INSTRUCTION_OBJECT_GET_FIELD,
 };
 
-typedef union {
-    uint8_t u8;
-    uint16_t u16;
-    uint32_t u32;
+typedef union HoldRegister {
+    // uint8_t u8;
+    // uint16_t u16;
+    // uint32_t u32;
     uint64_t u64;
-    float f32;
+    // float f32;
     double f64;
 } HoldRegister;
 
-typedef struct {
-    // The GC don't know what fields this object has so we push all ptr types at the back.
-    // After object_ptrs_start_at we know there are only ptrs the GC can follow.
-    uint16_t object_ptrs_start_at;
+typedef struct HoldObject {
+    // The GC don't know what fields this object has so we push all ptr types at the front.
+    // After object_ptrs_count we know there are no ptrs.
+    uint16_t object_ptrs_count;
     bool marked;
     alignas(8)
     uint8_t fields[];
 } HoldObject;
 
-typedef struct {
+typedef struct HoldFrame {
     uint8_t *sp;
     HoldObject **osp;
     uint32_t *pc;
 } HoldFrame;
 
-typedef struct {
+typedef struct HoldVM {
     HoldRegister registers[REGISTER_COUNT];
     uint32_t *pc;
     uint8_t *sp;
@@ -63,6 +76,8 @@ typedef struct {
     HoldObject **object_stack;
     HoldFrame *frame_stack;
     HoldRegister constants[CONSTANT_COUNT];
+    GC gc;
+    bool running;
 } HoldVM;
 
 void hold_init_vm(HoldVM *vm, uint32_t *code);

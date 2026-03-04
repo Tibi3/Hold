@@ -1,4 +1,5 @@
 #include "vm.h"
+#include "gc.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -19,12 +20,16 @@ void hold_init_vm(HoldVM *vm, uint32_t *code) {
     vm->frame_ptr->sp = vm->sp;
     vm->frame_ptr->pc = vm->pc;
 
+    hold_gc_init(&vm->gc);
+
     memset(vm->registers, 0, REGISTER_COUNT);
 }
 
 void hold_free_vm(HoldVM *vm) {
+    hold_gc_free(&vm->gc);
     free(vm->stack);
     free(vm->object_stack);
+    free(vm->frame_stack);
 }
 
 void hold_tick(HoldVM *vm) {
@@ -35,6 +40,10 @@ void hold_tick(HoldVM *vm) {
     uint32_t source_index2;
 
     switch (op_code) {
+        case HOLD_INSTRUCTION_HALT:
+            vm->running = false;
+            vm->pc--;
+        break;
         case HOLD_INSTRUCTION_LOAD_CONSTANT:
              destination_index = (instruction & 0x00FF0000) >> 16;
              source_index1 = instruction & 0x0000FFFF;
@@ -43,17 +52,17 @@ void hold_tick(HoldVM *vm) {
         case HOLD_INSTRUCTION_LOAD_U8_FROM_STACK:
             destination_index = (instruction & 0x00FF0000) >> 16;
             source_index1 = instruction & 0x0000FFFF;
-            vm->registers[destination_index].u8 = *((vm->frame_ptr - 1)->sp + source_index1);
+            vm->registers[destination_index].u64 = *((vm->frame_ptr - 1)->sp + source_index1);
         break;
         case HOLD_INSTRUCTION_LOAD_U16_FROM_STACK:
             destination_index = (instruction & 0x00FF0000) >> 16;
             source_index1 = instruction & 0x0000FFFF;
-            vm->registers[destination_index].u16 = *(uint16_t*)((vm->frame_ptr - 1)->sp + source_index1);
+            vm->registers[destination_index].u64 = *(uint16_t*)((vm->frame_ptr - 1)->sp + source_index1);
         break;
         case HOLD_INSTRUCTION_LOAD_U32_FROM_STACK:
             destination_index = (instruction & 0x00FF0000) >> 16;
             source_index1 = instruction & 0x0000FFFF;
-            vm->registers[destination_index].u32 = *(uint32_t*)((vm->frame_ptr - 1)->sp + source_index1);
+            vm->registers[destination_index].u64 = *(uint32_t*)((vm->frame_ptr - 1)->sp + source_index1);
         break;
         case HOLD_INSTRUCTION_LOAD_U64_FROM_STACK:
             destination_index = (instruction & 0x00FF0000) >> 16;
@@ -63,12 +72,12 @@ void hold_tick(HoldVM *vm) {
         case HOLD_INSTRUCTION_SAVE_U8_TO_STACK:
             destination_index = (instruction & 0x00FFFF00) >> 8;
             source_index1 = instruction & 0x000000FF;
-            *(uint8_t*)((vm->frame_ptr - 1)->sp + destination_index) = vm->registers[source_index1].u8;
+            *(uint8_t*)((vm->frame_ptr - 1)->sp + destination_index) = (uint8_t)vm->registers[source_index1].u64;
         break;
         case HOLD_INSTRUCTION_SAVE_U16_TO_STACK:
             destination_index = (instruction & 0x00FFFF00) >> 8;
             source_index1 = instruction & 0x000000FF;
-            *(uint16_t*)((vm->frame_ptr - 1)->sp + destination_index) = vm->registers[source_index1].u16;
+            *(uint16_t*)((vm->frame_ptr - 1)->sp + destination_index) = (uint16_t)vm->registers[source_index1].u64;
         break;
         case HOLD_INSTRUCTION_ADD_INTEGER:
             destination_index = (instruction & 0x00FF0000) >> 16;
@@ -82,6 +91,45 @@ void hold_tick(HoldVM *vm) {
             source_index2 = instruction & 0x000000FF;
             vm->registers[destination_index].f64 = vm->registers[source_index1].f64 + vm->registers[source_index2].f64;
         break;
+        case HOLD_INSTRUCTION_EQ_INTEGER:
+            source_index1 = (instruction & 0x00FF0000) >> 16;
+            source_index2 = (instruction & 0x0000FF00) >> 8;
+            if (vm->registers[source_index1].u64 != vm->registers[source_index2].u64) {
+                vm->pc++;
+            }
+        break;
+        case HOLD_INSTRUCTION_EQ_FLOAT:
+            source_index1 = (instruction & 0x00FF0000) >> 16;
+            source_index2 = (instruction & 0x0000FF00) >> 8;
+            if (vm->registers[source_index1].f64 != vm->registers[source_index2].f64) {
+                vm->pc++;
+            }
+        break;
+        case HOLD_INSTRUCTION_JUMP: {
+            uintptr_t offset = (uintptr_t)(instruction & 0x00FFFFFF) - 0x00800000;
+            vm->pc += (uintptr_t)offset;
+        } break;
+        case HOLD_INSTRUCTION_CALL: {
+            uintptr_t offset = (uintptr_t)(instruction & 0x00FFFFFF) - 0x00800000;
+            vm->frame_ptr->sp = vm->sp;
+            vm->frame_ptr->osp = vm->osp;
+            vm->frame_ptr->pc = vm->pc;
+            vm->frame_ptr++;
+            vm->pc += (uintptr_t)offset;
+        } break;
+        case HOLD_INSTRUCTION_RETURN: {
+            uintptr_t offset = (uintptr_t)(instruction & 0x00FFFFFF) - 0x00800000;
+            vm->frame_ptr--;
+            vm->sp = vm->frame_ptr->sp;
+            vm->osp = vm->frame_ptr->osp;
+            vm->pc = vm->frame_ptr->pc;
+        } break;
+        case HOLD_INSTRUCTION_ALLOC_OBJECT: {
+            uint32_t bytes = instruction & 0x00FFFFFF;
+            HoldObject* obj = malloc(sizeof(HoldObject) + bytes);
+            *(vm->osp++) = obj;
+            hold_gc_track(&vm->gc, vm, obj);
+        } break;
     }
 }
 
