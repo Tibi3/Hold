@@ -127,6 +127,8 @@ void hold_tick(HoldVM *vm) {
         case HOLD_INSTRUCTION_ALLOC_OBJECT: {
             uint32_t bytes = instruction & 0x00FFFFFF;
             HoldObject* obj = malloc(sizeof(HoldObject) + bytes);
+            obj->object_ptrs_count = 0;
+            obj->marked = false;
             *(vm->osp++) = obj;
             hold_gc_track(&vm->gc, vm, obj);
         } break;

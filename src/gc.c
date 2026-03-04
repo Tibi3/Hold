@@ -30,10 +30,11 @@ void hold_gc_track(GC *gc, HoldVM *vm, HoldObject *object) {
     gc->tracked_objects[gc->tracked_object_count++] = object;
 }
 
+static void mark_object(GC *gc, HoldObject* op);
+
 void hold_gc_mark_and_sweep(GC *gc, HoldVM *vm) {
     for (HoldObject** op = vm->frame_stack[0].osp; op < vm->osp; op++) {
-        (*op)->marked = true;
-        // TODO: check fields
+        mark_object(gc, *op);
     }
 
     uint64_t i = 0;
@@ -50,5 +51,15 @@ void hold_gc_mark_and_sweep(GC *gc, HoldVM *vm) {
 
         (*gc->tracked_objects[i]).marked = false;
         i++;
+    }
+}
+
+static void mark_object(GC *gc, HoldObject* op) {
+    if (op->marked) return;
+
+    op->marked = true;
+    for (uint16_t i = 0; i < op->object_ptrs_count; i++) {
+        uintptr_t *ptr_array = (uintptr_t*)op->fields;
+        mark_object(gc, (HoldObject*)ptr_array[i]);
     }
 }
