@@ -1,3 +1,4 @@
+#include "arena.h"
 #include "gc.h"
 #include "vm.h"
 #include "common.h"

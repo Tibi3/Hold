@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ALIGN(address, to) ((((uintptr_t)address) + (to - 1)) & ~(to - 1));
-
 void hold_init_vm(HoldVM *vm, uint32_t *code) {
     vm->stack = malloc(STACK_SIZE * sizeof(*vm->stack));
     vm->object_stack = malloc(STACK_SIZE * sizeof(*vm->object_stack));
@@ -140,27 +138,27 @@ void hold_push_u8(HoldVM *vm, uint8_t value) {
 }
 
 void hold_push_u16(HoldVM *vm, uint16_t value) {
-    vm->sp = (uint8_t*)ALIGN(vm->sp, 2);
+    vm->sp = (uint8_t*)HOLD_ALIGN_MEMORY(vm->sp, 2);
     *(uint16_t*)(vm->sp++) = value;
 }
 
 void hold_push_u32(HoldVM *vm, uint32_t value) {
-    vm->sp = (uint8_t*)ALIGN(vm->sp, 4);
+    vm->sp = (uint8_t*)HOLD_ALIGN_MEMORY(vm->sp, 4);
     *(uint32_t*)(vm->sp++) = value;
 }
 
 void hold_push_u64(HoldVM *vm, uint64_t value) {
-    vm->sp = (uint8_t*)ALIGN(vm->sp, 8);
+    vm->sp = (uint8_t*)HOLD_ALIGN_MEMORY(vm->sp, 8);
     *(uint64_t*)(vm->sp++) = value;
 }
 
 void hold_push_f32(HoldVM *vm, float value) {
-    vm->sp = (uint8_t*)ALIGN(vm->sp, 4);
+    vm->sp = (uint8_t*)HOLD_ALIGN_MEMORY(vm->sp, 4);
     *(float*)(vm->sp++) = value;
 }
 
 void hold_push_f64(HoldVM *vm, double value) {
-    vm->sp = (uint8_t*)ALIGN(vm->sp, 8);
+    vm->sp = (uint8_t*)HOLD_ALIGN_MEMORY(vm->sp, 8);
     *(double*)(vm->sp++) = value;
 }
 
