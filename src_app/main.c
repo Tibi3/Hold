@@ -1,10 +1,12 @@
 #include "arena.h"
 #include "gc.h"
-#include "vm.h"
 #include "common.h"
+#include "vm.h"
+#include "str_table.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main() {
     HoldVM vm;
