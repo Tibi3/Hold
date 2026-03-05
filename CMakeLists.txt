@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(include)
 
-set(SOURCES src/vm.c src/gc.c src/arena.c src/str_table.c)
+set(SOURCES src/vm.c src/gc.c src/arena.c src/str_table.c src/lexer.c)
 
 add_library(libhold STATIC ${SOURCES})
 set_target_properties(libhold PROPERTIES OUTPUT_NAME "hold")

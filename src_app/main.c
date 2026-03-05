@@ -1,6 +1,7 @@
 #include "arena.h"
 #include "gc.h"
 #include "common.h"
+#include "lexer.h"
 #include "vm.h"
 #include "str_table.h"
 #include <stdint.h>
@@ -9,6 +10,23 @@
 #include <string.h>
 
 int main() {
+    HoldLexer lexer;
+    HoldArena arena;
+
+    const uint8_t* src = (uint8_t*)"()[]{}<=;<;=;!=";
+
+    hold_arena_init(&arena);
+    hold_lexer_init(&lexer, &arena, src, (uint8_t*)"main.hold");
+
+    HoldToken *token;
+    char name[512] = {0};
+    do {
+        token = hold_lexer_get_next_token(&lexer);
+        hold_token_to_str(token, name);
+        printf("%s\n", name);
+    } while(token->kind != HOLD_TOKEN_EOF);
+
+    return 0;
     HoldVM vm;
 
     uint32_t instructions[] = {
