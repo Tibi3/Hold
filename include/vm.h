@@ -83,6 +83,7 @@ typedef struct HoldVM {
 void hold_init_vm(HoldVM *vm, uint32_t *code);
 void hold_free_vm(HoldVM *vm);
 
+void hold_run(HoldVM *vm);
 void hold_tick(HoldVM *vm);
 
 void hold_push_u8(HoldVM *vm, uint8_t value);
