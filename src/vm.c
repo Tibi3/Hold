@@ -56,11 +56,11 @@ void hold_run(HoldVM *vm) {
         [7 ... 255] = &&op_invalid,
     };
 
-    // [ op_code(8bit) | target_reg(8bit)   |      - (8bit)     | source_reg(8bit) ]
-    // [ op_code(8bit) | target_reg(8bit)   | source_reg2(8bit) | source_reg(8bit) ]
-    // [ op_code(8bit) | target_reg(8bit)   |          source_index(16bit          ]
-    // [ op_code(8bit) |           target_index(16bit)          | source_reg(8bit) ]
-    // [ op_code(8bit) |                         ? (24bit)                         ]
+    // [ op_code(8bit) | target_reg(8bit) |      - (8bit)     | source_reg(8bit) ]
+    // [ op_code(8bit) | target_reg(8bit) | source_reg2(8bit) | source_reg(8bit) ]
+    // [ op_code(8bit) | target_reg(8bit) |          source_index(16bit)         ]
+    // [ op_code(8bit) |          target_index(16bit)         | source_reg(8bit) ]
+    // [ op_code(8bit) |                        ? (24bit)                        ]
     uint32_t instruction = 0;
     uint8_t op_code = 0;
     // TODO: AFTER making stuff work investigate this:
