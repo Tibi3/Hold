@@ -33,7 +33,7 @@ void hold_gc_track(GC *gc, HoldVM *vm, HoldObject *object) {
 static void mark_object(GC *gc, HoldObject* op);
 
 void hold_gc_mark_and_sweep(GC *gc, HoldVM *vm) {
-    for (HoldObject** op = vm->frame_stack[0].osp; op < vm->osp; op++) {
+    for (HoldObject** op = vm->object_stack; op < vm->osp; op++) {
         mark_object(gc, *op);
     }
 

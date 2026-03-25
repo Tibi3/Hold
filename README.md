@@ -49,7 +49,7 @@ HEX_LITERAL         = "0x", HEX_DIGIT, [ "_" ], { HEX_DIGIT } ;
 DEC_LITERAL         = DEC_DIGIT, { [ "_" ], DEC_DIGIT } ;                    (* TODO: 012 is a valid decimal number *)
 BIN_LITERAL         = "0b", BIN_DIGIT, [ "_" ], { BIN_DIGIT } ;
 
-STR_CHAR            = ? any utf-8 character except " ? ;                     (* I dare you to make a generator that understands this. *)
+STR_CHAR            = ? any utf-8 character except " ? ;
 HEX_DIGIT           = DEC_DIGIT | "a" ... "f" | "A" ... "F" ;
 DEC_DIGIT           = BIN_DIGIT | "2" ... "9" ;
 BIN_DIGIT           = "0" | "1" ;

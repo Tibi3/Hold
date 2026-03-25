@@ -5,13 +5,13 @@
 #include "common.h"
 #include "gc.h"
 
-#define STACK_SIZE 1024
-#define REGISTER_COUNT 16
-#define CONSTANT_COUNT 1024
+#define HOLD_STACK_SIZE 4096
+#define HOLD_REGISTER_COUNT 4096
 
 enum HoldInstruction : uint8_t {
     HOLD_INSTRUCTION_HALT,
     // Load
+    // | ... | 8bit reg | 16bit index |
     HOLD_INSTRUCTION_LOAD_CONSTANT,
     HOLD_INSTRUCTION_LOAD_U8_FROM_STACK,
     HOLD_INSTRUCTION_LOAD_U16_FROM_STACK,
@@ -19,6 +19,7 @@ enum HoldInstruction : uint8_t {
     HOLD_INSTRUCTION_LOAD_U64_FROM_STACK,
 
     // Save
+    // | ... | 16bit index | 8bit reg |
     HOLD_INSTRUCTION_SAVE_U8_TO_STACK,
     HOLD_INSTRUCTION_SAVE_U16_TO_STACK,
     HOLD_INSTRUCTION_SAVE_U32_TO_STACK,
@@ -42,11 +43,11 @@ enum HoldInstruction : uint8_t {
 };
 
 typedef union HoldRegister {
-    // uint8_t u8;
-    // uint16_t u16;
-    // uint32_t u32;
+    uint8_t u8;
+    uint16_t u16;
+    uint32_t u32;
     uint64_t u64;
-    // float f32;
+    float f32;
     double f64;
 } HoldRegister;
 
@@ -59,37 +60,25 @@ typedef struct HoldObject {
     uint8_t fields[];
 } HoldObject;
 
-typedef struct HoldFrame {
-    uint8_t *sp;
-    HoldObject **osp;
-    uint32_t *pc;
-} HoldFrame;
-
 typedef struct HoldVM {
-    HoldRegister registers[REGISTER_COUNT];
-    uint32_t *pc;
+    HoldRegister registers[HOLD_REGISTER_COUNT];
+    // Stores primiteve types.
+    uint8_t stack[HOLD_STACK_SIZE];
+    // Stores Object pointers. The GC has to scan this stack only.
+    HoldObject* object_stack[HOLD_STACK_SIZE];
     uint8_t *sp;
-    HoldFrame *frame_ptr;
+    uint8_t *sp_base;
     HoldObject **osp;
-    uint32_t *code;
-    uint8_t *stack;
-    HoldObject **object_stack;
-    HoldFrame *frame_stack;
-    HoldRegister constants[CONSTANT_COUNT];
+    HoldObject **osp_base;
+    HoldRegister *reg_base;
+    const uint32_t *pc;
+    const uint32_t *code;
+    const HoldRegister *constants;
     GC gc;
-    bool running;
 } HoldVM;
 
-void hold_init_vm(HoldVM *vm, uint32_t *code);
+void hold_init_vm(HoldVM *vm, const uint32_t *code, const HoldRegister* constants);
 void hold_free_vm(HoldVM *vm);
 
 void hold_run(HoldVM *vm);
 void hold_tick(HoldVM *vm);
-
-void hold_push_u8(HoldVM *vm, uint8_t value);
-void hold_push_u16(HoldVM *vm, uint16_t value);
-void hold_push_u32(HoldVM *vm, uint32_t value);
-void hold_push_u64(HoldVM *vm, uint64_t value);
-void hold_push_f32(HoldVM *vm, float value);
-void hold_push_f64(HoldVM *vm, double value);
-void hold_push_obj(HoldVM *vm, HoldObject* obj);
