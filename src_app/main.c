@@ -36,19 +36,23 @@ int main() {
         0x01010001,
         // LOAD CONST 2 TO REG2
         0x01020002,
+        // LOAD CONST 3 TO REG3
+        0x01030003,
         // SAVE REG 2 to stack
-        0x06000002,
+        0x08000002,
         // SAVE REG 1 to stack
-        0x06000101,
-        // LOAD REG 0 from stack[0]
-        0x02000000,
+        0x08000101,
+        // LOAD REG 4 from stack[0]
+        0x02040000,
+        // SAVE REG 3 to stack [4..=7]
+        0x0C000403,
         // 99 is INVALID OP_CODE
         // 0x99000000,
         // HALT
         0x00000000,
     };
 
-    HoldRegister constants[] = { { .u64 = 0xAA }, { .u64 = 0xBB }, { .u64 = 0xCC } };
+    HoldRegister constants[] = { { .u64 = 0xAA }, { .u64 = 0xBB }, { .u64 = 0xCC }, { .f32 = 0.111 } };
 
     hold_init_vm(&vm, instructions, constants);
 
@@ -57,6 +61,8 @@ int main() {
     printf("reg0: %02lx\n", vm.registers[0].u64);
     printf("reg1: %02lx\n", vm.registers[1].u64);
     printf("reg2: %02lx\n", vm.registers[2].u64);
+    printf("reg3: %f\n", vm.registers[3].f32);
+    printf("reg4: %02lx\n", vm.registers[4].u64);
 
     printf("stack:\n");
     for (int i = 0; i < 8; i++) {

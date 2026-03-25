@@ -26,9 +26,9 @@ void hold_free_vm(HoldVM *vm) {
 void hold_run(HoldVM *vm) {
     #define HOLD_INSTRUCTION_LOGIC(logic)       \
     {                                           \
+        logic;                                  \
         instruction = *vm->pc++;                \
         op_code = (instruction >> 24) & 0xFF;   \
-        logic;                                  \
         goto *dispatch_table[op_code];          \
     }                                           \
 
@@ -46,14 +46,19 @@ void hold_run(HoldVM *vm) {
         &&op_halt,
         &&op_load_constant,
         &&op_load_u8,
+        &&op_load_u16,
+        &&op_load_u32,
+        &&op_load_u64,
+        &&op_load_f32,
+        &&op_load_f64,
+        &&op_save_u8,
+        &&op_save_u16,
+        &&op_save_u32,
+        &&op_save_u64,
+        &&op_save_f32,
+        &&op_save_f64,
 
-        &&op_invalid,
-        &&op_invalid,
-        &&op_invalid,
-
-        [ HOLD_INSTRUCTION_SAVE_U8_TO_STACK ] = &&op_save_u8,
-
-        [7 ... 255] = &&op_invalid,
+        [14 ... 255] = &&op_invalid,
     };
 
     // [ op_code(8bit) | target_reg(8bit) |      - (8bit)     | source_reg(8bit) ]
@@ -68,7 +73,9 @@ void hold_run(HoldVM *vm) {
     const HoldRegister *constants = vm->constants;
 
     // Start
-    HOLD_INSTRUCTION_LOGIC({})
+    HOLD_INSTRUCTION_LOGIC({
+        printf("start %08x %02x target_index = %d source_reg = %d\n", instruction, op_code, TARGET_INDEX, SOURCE_REG);
+    })
 
     HOLD_INSTRUCTION(halt, {
         return;
@@ -79,11 +86,53 @@ void hold_run(HoldVM *vm) {
     })
 
     HOLD_INSTRUCTION(load_u8, {
-        vm->reg_base[TARGET_REG].u64 = *(vm->sp_base + SOURCE_INDEX);
+        vm->reg_base[TARGET_REG].u8 = *(vm->sp_base + SOURCE_INDEX);
+    })
+
+    HOLD_INSTRUCTION(load_u16, {
+        vm->reg_base[TARGET_REG].u16 = *((uint16_t*)(vm->sp_base + SOURCE_INDEX));
+    })
+
+    HOLD_INSTRUCTION(load_u32, {
+        vm->reg_base[TARGET_REG].u32 = *((uint32_t*)(vm->sp_base + SOURCE_INDEX));
+    })
+
+    HOLD_INSTRUCTION(load_u64, {
+        vm->reg_base[TARGET_REG].u64 = *((uint64_t*)(vm->sp_base + SOURCE_INDEX));
+    })
+
+    HOLD_INSTRUCTION(load_f32, {
+        vm->reg_base[TARGET_REG].f32 = *((float*)(vm->sp_base + SOURCE_INDEX));
+    })
+
+    HOLD_INSTRUCTION(load_f64, {
+        vm->reg_base[TARGET_REG].f64 = *((double*)(vm->sp_base + SOURCE_INDEX));
     })
 
     HOLD_INSTRUCTION(save_u8, {
+        printf("save_u8 %08x %02x target_index = %d source_reg = %d\n", instruction, op_code, TARGET_INDEX, SOURCE_REG);
         *(vm->sp_base + TARGET_INDEX) = vm->reg_base[SOURCE_REG].u8;
+    })
+
+    HOLD_INSTRUCTION(save_u16, {
+        *((uint16_t*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].u16;
+    })
+
+    HOLD_INSTRUCTION(save_u32, {
+        *((uint32_t*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].u32;
+    })
+
+    HOLD_INSTRUCTION(save_u64, {
+        *((uint64_t*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].u64;
+    })
+
+    HOLD_INSTRUCTION(save_f32, {
+        printf("save_f32 %08x %02x target_index = %d source_reg = %d\n", instruction, op_code, TARGET_INDEX, SOURCE_REG);
+        *((float*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].f32;
+    })
+
+    HOLD_INSTRUCTION(save_f64, {
+        *((double*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].f64;
     })
 
 op_invalid:
