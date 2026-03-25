@@ -73,9 +73,7 @@ void hold_run(HoldVM *vm) {
     const HoldRegister *constants = vm->constants;
 
     // Start
-    HOLD_INSTRUCTION_LOGIC({
-        printf("start %08x %02x target_index = %d source_reg = %d\n", instruction, op_code, TARGET_INDEX, SOURCE_REG);
-    })
+    HOLD_INSTRUCTION_LOGIC({})
 
     HOLD_INSTRUCTION(halt, {
         return;
@@ -110,7 +108,6 @@ void hold_run(HoldVM *vm) {
     })
 
     HOLD_INSTRUCTION(save_u8, {
-        printf("save_u8 %08x %02x target_index = %d source_reg = %d\n", instruction, op_code, TARGET_INDEX, SOURCE_REG);
         *(vm->sp_base + TARGET_INDEX) = vm->reg_base[SOURCE_REG].u8;
     })
 
@@ -127,7 +124,6 @@ void hold_run(HoldVM *vm) {
     })
 
     HOLD_INSTRUCTION(save_f32, {
-        printf("save_f32 %08x %02x target_index = %d source_reg = %d\n", instruction, op_code, TARGET_INDEX, SOURCE_REG);
         *((float*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].f32;
     })
 
