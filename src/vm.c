@@ -24,6 +24,24 @@ void hold_free_vm(HoldVM *vm) {
 }
 
 void hold_run(HoldVM *vm) {
+    #define HOLD_INSTRUCTION_LOGIC(logic)       \
+    {                                           \
+        instruction = *vm->pc++;                \
+        op_code = (instruction >> 24) & 0xFF;   \
+        logic;                                  \
+        goto *dispatch_table[op_code];          \
+    }                                           \
+
+    #define HOLD_INSTRUCTION(name, logic)       \
+        op_##name:                              \
+        HOLD_INSTRUCTION_LOGIC(logic)           \
+
+    #define TARGET_REG      ((instruction & 0x00FF0000) >> 16)
+    #define TARGET_INDEX    ((instruction & 0x00FFFF00) >> 8)
+    #define SOURCE_REG      (instruction & 0x000000FF)
+    #define SOURCE_REG2     ((instruction & 0x0000FF00) >> 8)
+    #define SOURCE_INDEX    (instruction & 0x0000FFFF)
+
     static const void *dispatch_table[256] = {
         &&op_halt,
         &&op_load_constant,
@@ -38,20 +56,16 @@ void hold_run(HoldVM *vm) {
         [7 ... 255] = &&op_invalid,
     };
 
-    #define HOLD_INSTRUCTION_LOGIC(logic)       \
-    {                                           \
-        instruction = *vm->pc++;                \
-        op_code = (instruction >> 24) & 0xFF;   \
-        logic;                                  \
-        goto *dispatch_table[op_code];          \
-    }                                           \
-
-    #define HOLD_INSTRUCTION(name, logic)       \
-        op_##name:                              \
-        HOLD_INSTRUCTION_LOGIC(logic)           \
-
+    // [ op_code(8bit) | target_reg(8bit)   |      - (8bit)     | source_reg(8bit) ]
+    // [ op_code(8bit) | target_reg(8bit)   | source_reg2(8bit) | source_reg(8bit) ]
+    // [ op_code(8bit) | target_reg(8bit)   |          source_index(16bit          ]
+    // [ op_code(8bit) |           target_index(16bit)          | source_reg(8bit) ]
+    // [ op_code(8bit) |                         ? (24bit)                         ]
     uint32_t instruction = 0;
     uint8_t op_code = 0;
+    // TODO: AFTER making stuff work investigate this:
+    // apparently puting vm->* into local variables can help with performance, also can introduce desync.
+    const HoldRegister *constants = vm->constants;
 
     // Start
     HOLD_INSTRUCTION_LOGIC({})
@@ -61,28 +75,28 @@ void hold_run(HoldVM *vm) {
     })
 
     HOLD_INSTRUCTION(load_constant, {
-        uint8_t register_index = (instruction & 0x00FF0000) >> 16;
-        uint16_t constant_index = instruction & 0x0000FFFF;
-        vm->reg_base[register_index] = vm->constants[constant_index];
+        vm->reg_base[TARGET_REG] = constants[SOURCE_INDEX];
     })
 
     HOLD_INSTRUCTION(load_u8, {
-        uint8_t register_index = (instruction & 0x00FF0000) >> 16;
-        uint16_t stack_offset = instruction & 0x0000FFFF;
-        vm->reg_base[register_index].u64 = *(vm->sp_base + stack_offset);
+        vm->reg_base[TARGET_REG].u64 = *(vm->sp_base + SOURCE_INDEX);
     })
 
     HOLD_INSTRUCTION(save_u8, {
-        uint8_t register_index = (instruction & 0x00FF0000) >> 16;
-        uint16_t stack_offset = instruction & 0x0000FFFF;
-        *(vm->sp_base + stack_offset) = vm->reg_base[register_index].u8;
+        *(vm->sp_base + TARGET_INDEX) = vm->reg_base[SOURCE_REG].u8;
     })
 
 op_invalid:
     printf("Invalid op: '0x%02x' at index %ld.\n", op_code, vm->pc - vm->code - 1);
     return;
 
+    #undef HOLD_INSTRUCTION_LOGIC
     #undef HOLD_INSTRUCTION
+    #undef TARGET_REG
+    #undef TARGET_INDEX
+    #undef SOURCE_REG
+    #undef SOURCE_REG2
+    #undef SOURCE_INDEX
 }
 
 static inline void hold_push_u8(HoldVM *vm, uint8_t value) {

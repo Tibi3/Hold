@@ -1,8 +1,8 @@
+#include <stdint.h>
+#include <stdlib.h>
 #include "gc.h"
 #include "vm.h"
 #include "common.h"
-#include <stdint.h>
-#include <stdlib.h>
 
 #define TRIGGER_CLEAN_UP_AT 1024
 
@@ -59,7 +59,8 @@ static void mark_object(GC *gc, HoldObject* op) {
 
     op->marked = true;
     for (uint16_t i = 0; i < op->object_ptrs_count; i++) {
-        uintptr_t *ptr_array = (uintptr_t*)op->fields;
-        mark_object(gc, (HoldObject*)ptr_array[i]);
+        // uintptr_t *ptr_array = (uintptr_t*)op->fields;
+        // mark_object(gc, (HoldObject*)ptr_array[i]);
+        mark_object(gc, ((HoldObject**)op->fields)[i]);
     }
 }

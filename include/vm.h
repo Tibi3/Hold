@@ -11,7 +11,6 @@
 enum HoldInstruction : uint8_t {
     HOLD_INSTRUCTION_HALT,
     // Load
-    // | ... | 8bit reg | 16bit index |
     HOLD_INSTRUCTION_LOAD_CONSTANT,
     HOLD_INSTRUCTION_LOAD_U8_FROM_STACK,
     HOLD_INSTRUCTION_LOAD_U16_FROM_STACK,
@@ -19,7 +18,6 @@ enum HoldInstruction : uint8_t {
     HOLD_INSTRUCTION_LOAD_U64_FROM_STACK,
 
     // Save
-    // | ... | 16bit index | 8bit reg |
     HOLD_INSTRUCTION_SAVE_U8_TO_STACK,
     HOLD_INSTRUCTION_SAVE_U16_TO_STACK,
     HOLD_INSTRUCTION_SAVE_U32_TO_STACK,
