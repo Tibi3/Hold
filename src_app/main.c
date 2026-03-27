@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define INSTRUCTION(instruction, value) ((instruction) << 24 | (value))
+
 int main() {
     // HoldLexer lexer;
     // HoldArena arena;
@@ -31,26 +33,27 @@ int main() {
 
     uint32_t instructions[] = {
         // LOAD CONST 0 TO REG0
-        0x01000000,
+        INSTRUCTION(HOLD_INSTRUCTION_LOAD_CONSTANT, 0x0),
         // LOAD CONST 1 TO REG1
-        0x01010001,
+        INSTRUCTION(HOLD_INSTRUCTION_LOAD_CONSTANT, 0x00010001),
         // LOAD CONST 2 TO REG2
-        0x01020002,
+        INSTRUCTION(HOLD_INSTRUCTION_LOAD_CONSTANT, 0x00020002),
         // LOAD CONST 3 TO REG3
-        0x01030003,
+        INSTRUCTION(HOLD_INSTRUCTION_LOAD_CONSTANT, 0x00030003),
         // SAVE REG 2 to stack
-        0x08000002,
+        INSTRUCTION(HOLD_INSTRUCTION_SAVE_U8_TO_STACK, 0x00000002),
         // SAVE REG 1 to stack
-        0x08000101,
+        INSTRUCTION(HOLD_INSTRUCTION_SAVE_U8_TO_STACK, 0x00000101),
         // LOAD REG 4 from stack[0]
-        0x02040000,
+        INSTRUCTION(HOLD_INSTRUCTION_LOAD_U8_FROM_STACK, 0x00040000),
         // SAVE REG 3 to stack [4..=7]
-        0x0C000403,
+        INSTRUCTION(HOLD_INSTRUCTION_SAVE_U32_TO_STACK, 0x00000403),
         // 99 is INVALID OP_CODE
         // 0x99000000,
         // HALT
-        0x00000000,
+        INSTRUCTION(HOLD_INSTRUCTION_HALT, 0x0)
     };
+
 
     HoldRegister constants[] = { { .u64 = 0xAA }, { .u64 = 0xBB }, { .u64 = 0xCC }, { .f32 = 0.111 } };
 

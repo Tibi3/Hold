@@ -49,16 +49,24 @@ void hold_run(HoldVM *vm) {
         &&op_load_u16,
         &&op_load_u32,
         &&op_load_u64,
+        &&op_invalid, // &&op_load_i8,
+        &&op_invalid, // &&op_load_i16,
+        &&op_invalid, // &&op_load_i32,
+        &&op_invalid, // &&op_load_i64,
         &&op_load_f32,
         &&op_load_f64,
         &&op_save_u8,
         &&op_save_u16,
         &&op_save_u32,
         &&op_save_u64,
+        &&op_invalid, // &&op_save_i8,
+        &&op_invalid, // &&op_save_i16,
+        &&op_invalid, // &&op_save_i32,
+        &&op_invalid, // &&op_save_i64,
         &&op_save_f32,
         &&op_save_f64,
 
-        [14 ... 255] = &&op_invalid,
+        [22 ... 255] = &&op_invalid,
     };
 
     // [ op_code(8bit) | target_reg(8bit) |      - (8bit)     | source_reg(8bit) ]
@@ -84,11 +92,11 @@ void hold_run(HoldVM *vm) {
     })
 
     HOLD_INSTRUCTION(load_u8, {
-        vm->reg_base[TARGET_REG].u8 = *(vm->sp_base + SOURCE_INDEX);
+        vm->reg_base[TARGET_REG].u32 = *(vm->sp_base + SOURCE_INDEX);
     })
 
     HOLD_INSTRUCTION(load_u16, {
-        vm->reg_base[TARGET_REG].u16 = *((uint16_t*)(vm->sp_base + SOURCE_INDEX));
+        vm->reg_base[TARGET_REG].u32 = *((uint16_t*)(vm->sp_base + SOURCE_INDEX));
     })
 
     HOLD_INSTRUCTION(load_u32, {
@@ -108,11 +116,11 @@ void hold_run(HoldVM *vm) {
     })
 
     HOLD_INSTRUCTION(save_u8, {
-        *(vm->sp_base + TARGET_INDEX) = vm->reg_base[SOURCE_REG].u8;
+        *(vm->sp_base + TARGET_INDEX) = vm->reg_base[SOURCE_REG].u32;
     })
 
     HOLD_INSTRUCTION(save_u16, {
-        *((uint16_t*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].u16;
+        *((uint16_t*)(vm->sp_base + TARGET_INDEX)) = vm->reg_base[SOURCE_REG].u32;
     })
 
     HOLD_INSTRUCTION(save_u32, {
