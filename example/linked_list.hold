@@ -1,0 +1,22 @@
+export struct LinkedList<T> {
+    first_node?: LinkedListNode<T>
+}
+
+export struct LinkedListNode<T> {
+    value: T,
+    next?: LinkedList<T>
+}
+
+export fn LinkedList<T>::new() {
+    return LinkedList<T> {
+        first_node: null
+    }
+}
+
+export fn LinkedList<T>::push_front(self, value: T) {
+    let pref_fist = self.first_node;
+    self.first_node = LinkedListNode<T> {
+        value: value,
+        next = pref_list
+    }
+}

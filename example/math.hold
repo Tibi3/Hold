@@ -1,30 +1,28 @@
-export struct Vec2 {
+export fn sinf(value: f32): f32 {
+    return 0.0;
+}
+
+export fn generic_fn<T> (arg: T): String where T is Trait1, Trait2 {
+
+}
+
+export struct Vec2 : Eq<Vec2> {
     x: f32,
     y: f32
 }
 
-export fn Vec::new(x: f32, y: f32): Vec2 {
+export fn Vec2::new(x: f32, y: f32): Vec2 {
     return Vec2 {
         x: x,
         y: y
     };
 }
 
-export fn Vec::add(self, other: Vec2) {
-    self.x += other.x;
-    self.y += other.y;
+export fn Vec2 as Eq<Vec2>::eq(self, other: Vec2): i32 {
+    return absf(self.x - other.x) <= 0.0001 && absf(self.y - other.y) <= 0.0001;
 }
 
-export trait VecLike {
-    length(self): f32,
-    length_squared(self): f32,
-    scale(self, value: f32),
-}
-
-export fn maxi(a: i64, b: i64): i64 {
-    if a > b {
-        return a;
-    }
-
-    return b;
+export Trait Eq<T> {
+    fn eq(self, other: T): i32;
+    fn not_eq(self, other: T): i32;
 }

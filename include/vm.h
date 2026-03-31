@@ -68,7 +68,7 @@ enum HoldInstruction : uint8_t {
     HOLD_INSTRUCTION_LSH_U64,
     HOLD_INSTRUCTION_RSH_U32,
     HOLD_INSTRUCTION_RSH_U64,
-    // Apperentaly right shift preservs the signed bit.
+    // Apperentaly right shift preserves the signed bit.
     HOLD_INSTRUCTION_RSH_I32,
     HOLD_INSTRUCTION_RSH_I64,
 
@@ -121,7 +121,7 @@ typedef struct HoldObject {
 
 typedef struct HoldVM {
     HoldRegister registers[HOLD_REGISTER_COUNT];
-    // Stores primiteve types.
+    // Stores primitive types.
     uint8_t stack[HOLD_STACK_SIZE];
     // Stores Object pointers. The GC has to scan this stack only.
     HoldObject* object_stack[HOLD_STACK_SIZE];

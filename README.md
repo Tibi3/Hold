@@ -14,42 +14,55 @@ TODO:
 
 program             = { use }, { top_level_stmnt } ;
 
-use                 = "use", "{", [IDENTIFIER], { ",", IDENTIFIER }, "}", ';' ;  (* Probably we need an option to alias these, I'm not sure how complicated that is *)
+use                 = "use", "{", [ IDENTIFIER, { ",", IDENTIFIER } ], "}", "from", IDENTIFIER, ';' ;  (* Probably we need an option to alias these, I'm not sure how complicated that is *)
 
 top_level_stmnt     = [ "export" ], (struct_decl | trait_decl | function_decl);
 
-struct_decl         = "struct", IDENTIFIER, "{", { struct_member_decl }, "}" ;
+struct_decl         = "struct", IDENTIFIER, [ generic_decl ], [ ":", IDENTIFIER, [ generic_args ], { ",", IDENTIFIER, [ generic_args ] } ], [generic_filter],  "{", { struct_member_decl }, "}" ;
 struct_member_decl  = [ IDENTIFIER, ":", IDENTIFIER ], { ",", IDENTIFIER, ":", IDENTIFIER }
 
-trait_decl          = "trait", IDENTIFIER, "{", { trait_func_decl }, "}" ;
+generic_decl        = "<", IDENTIFIER, { ",", IDENTIFIER }, ">"             (* TODO: add default values *)
+generic_args        = "<", IDENTIFIER, { ",", IDENTIFIER }, ">"
+generic_filter      = "where", IDENTIFIER, "is", IDENTIFIER, { ",", IDENTIFIER };
 
-trait_func_decl     = IDENTIFIER, "(", function_arg_list, ")", [ ":", IDENTIFIER ] ;
+trait_decl          = "trait", IDENTIFIER, [generic_decl], "{", { trait_func_decl }, "}" ;
 
-function_decl       = "fn", IDENTIFIER, [ "::", IDENTIFIER ], "(", function_arg_list, ")", [ ":", IDENTIFIER ], block;
-function_arg_list   = [ "self" ], { ",", IDENTIFIER, ":", IDENTIFIER } ;    (* TODO: default values *)
-function_arg        = IDENTIFIER, ":", IDENTIFIER ;
+trait_func_decl     = IDENTIFIER, [generic_decl], "(", function_arg_list, ")", [ ":", IDENTIFIER ];
 
-block               = "{", stmnt_list, "}" ;
+function_decl       = "fn", IDENTIFIER, [ "::", IDENTIFIER ], [generic_decl], "(", function_arg_list, ")", [ ":", IDENTIFIER ], [generic_filter], block;
+function_arg_list   = [ "self" ], { ",", function_arg } ;    
+function_arg        = IDENTIFIER, ":", IDENTIFIER ;                         (* TODO: add default values *)
 
-stmnt_list          = { variable_decl | if | loop | while | break | continue | return | (( variable_assign | expression ), ";") } | ";" ;
+block               = [ "defer" ], "{", stmnt_list, "}" ;                   (* This allows some invalid states like `fn foo() defer {}` :( *)
+
+stmnt_list          = { variable_decl | if | loop | while | "break" | "continue" | return | variable_assign | expression | ";" } ;
 
 variable_decl       = "let", IDENTIFIER, ":", IDENTIFIER, [ "=", expression ] ;   (* It would be nice if the compiler could infer the type. *)
 
 if                  = "if", expression, block [ "else", block ] ;            (* TODO: elif? else if? *)
+
+loop                = "loop", block ;                                        (* Is this even necessary? *)
+
+while               = "while", expression, block ;
+
+return              = "return", expression, ";" ;
+
+variable_assign     = IDENTIFIER, "=", expression ";" ;
 
 (* TODO: add missing stuff *)
 
 IDENTIFIER          = IDENTIFIER_BASE, { IDENTIFIER_BASE | DEC_DIGIT } ;     (* No emoji in names :( *)
 IDENTIFIER_BASE     = "_" | "a" ... "z" | "A" ... "Z" ;
 
-STRING_LITERAL      = '"', { STR_CHAR | "\"" | "\n" | "\r", "\\"  }, '"'     (* TODO: add more escape chars *)
+CHAR_LITERAL        = "'", STR_CHAR, "'",
+STRING_LITERAL      = '"', { STR_CHAR }, '"'     
 NUMBER_LITERAL      = BIN_LITERAL | DEC_LITERAL | HEX_LITERAL ;
 
-HEX_LITERAL         = "0x", HEX_DIGIT, [ "_" ], { HEX_DIGIT } ;
-DEC_LITERAL         = DEC_DIGIT, { [ "_" ], DEC_DIGIT } ;                    (* TODO: 012 is a valid decimal number *)
-BIN_LITERAL         = "0b", BIN_DIGIT, [ "_" ], { BIN_DIGIT } ;
+HEX_LITERAL         = "0x", HEX_DIGIT, { "_" | HEX_DIGIT } ;
+DEC_LITERAL         = DEC_DIGIT, { "_" | DEC_DIGIT } ;                    (* TODO: 012 is a valid decimal number *)
+BIN_LITERAL         = "0b", BIN_DIGIT, { "_" | BIN_DIGIT } ;
 
-STR_CHAR            = ? any utf-8 character except " ? ;
+STR_CHAR            = ? any utf-8 character except " ? | "\"" | "\t" | "\n" | "\r", "\\"; (* TODO: add more escape chars *)
 HEX_DIGIT           = DEC_DIGIT | "a" ... "f" | "A" ... "F" ;
 DEC_DIGIT           = BIN_DIGIT | "2" ... "9" ;
 BIN_DIGIT           = "0" | "1" ;
