@@ -90,7 +90,6 @@ enum HoldInstruction : uint8_t {
     HOLD_INSTRUCTION_DIV_F32,
     HOLD_INSTRUCTION_DIV_F64,
 
-
     HOLD_INSTRUCTION_JUMP,
 
     HOLD_INSTRUCTION_CALL,
@@ -132,6 +131,7 @@ typedef struct HoldVM {
     HoldRegister *reg_base;
     const uint32_t *pc;
     const uint32_t *code;
+    // TODO: move constants into code, add code header, add type info table to code
     const HoldRegister *constants;
     GC gc;
 } HoldVM;
